@@ -12,7 +12,5 @@
 https://www.youtube.com/watch?v=-WzRFVvfmIk&feature=youtu.be
 
 ### Assignment2
-#### Data
-Original TinyImagenet
-Resized TinyImagenet
 
+[Google Drive: Experiment3&4 Source Code and Resized Dateset  ](https://drive.google.com/open?id=12ZIRv6d25wZ5ryEWMryFrDVmRY9Cww--)
