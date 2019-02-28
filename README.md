@@ -1,4 +1,4 @@
-# INFO7374
+# INFO7374 Cognitive Computing and Deep Neural Networks
 
 
 ## INFO7374 
