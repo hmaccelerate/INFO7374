@@ -1,7 +1,6 @@
-# INFO7374
+# INFO7374 Cognitive Computing and Deep Neural Networks
 
 
-## INFO7374 
 ## Course Information
 * **School**: College of Engineering, Northeastern University
 * **Course Name**: Cognitive Computing and Deep Neural Networks
