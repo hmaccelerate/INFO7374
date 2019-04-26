@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.amazingfour.crms.dao.CloudFileDao">
+    <resultMap type="CloudFile" id="CloudFileResult">
+        <result property="fileId" column="file_id"/>
+        <result property="fileName" column="file_name"/>
+        <result property="fileUrl" column="file_url"/>
+        <result property="fileDate" column="file_date"/>
+        <result property="fileType" column="file_type"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="fileDescript" column="file_descript"/>
+        <result property="fileState" column="file_state"/>
+        <result property="shareState" column="share_state"/>
+        <result property="instanceId" column="instanceId"/>
+        <result property="bussinessKey" column="bussinessKey"/>
+    </resultMap>
+
+    <!-- 添加文件 -->
+    <insert id="insert" parameterType="CloudFile" useGeneratedKeys="true" keyProperty="fileId">
+        insert into cloudfile(file_id,file_name,file_url,file_date,file_type,file_size,file_descript,file_state,share_state,instanceId,bussinessKey)
+        values(#{fileId},#{fileName},#{fileUrl},#{fileDate},#{fileType},#{fileSize},#{fileDescript},0,0,#{instanceId},#{bussinessKey})
+    </insert>
+
+    <!-- 查找文件 -->
+    <select id="find" parameterType="Map" resultMap="CloudFileResult">
+        select * from cloudfile
+        <where>
+            <if test="fileName!=null">
+                file_name like '%${fileName}%'
+            </if>
+
+            <if test="fileState!=null">
+                and file_state=#{fileState}
+            </if>
+
+            <if test="shareState!=null">
+                and share_state=#{shareState}
+            </if>
+        </where>
+        <if test="start!=null and size!=null">  <!-- start=起始页 size=页容量 -->
+            limit #{start},#{size}
+        </if>
+    </select>
+
+    <!-- 查询文件数量 -->
+    <select id="count" parameterType="CloudFile" resultType="Integer">
+        select count(*) from cloudfile
+        <where>
+            <if test="fileName!=null">
+                file_name like '%${fileName}%'
+            </if>
+
+            <if test="fileState!=null">
+                and file_state=#{fileState}
+            </if>
+
+            <if test="shareState!=null">
+                and share_state=#{shareState}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据ID查找一个文件 -->
+    <select id="findById" parameterType="Long" resultMap="CloudFileResult">
+        select * from cloudfile
+        where file_id=#{fileId}
+    </select>
+
+    <!-- 删除文件 -->
+    <delete id="delete" parameterType="Long">  <!-- 不需要指明返回类型 自动返回删除行数或者是异常信息 -->
+        delete from cloudfile where file_id=#{fileId}
+    </delete>
+
+    <!-- 更新文件 -->
+    <update id="update" parameterType="CloudFile">
+        update cloudfile set
+        file_name=#{fileName},file_url=#{fileUrl},file_date=#{fileDate},file_type=#{fileType},file_size=#{fileSize},file_descript=#{fileDescript},file_state=#{fileState},share_state=#{shareState},label=#{label},tag=#{tag}
+        where file_id=#{fileId}
+    </update>
+
+    <!-- 批量删除文件 -->
+    <delete id="deleteBatch" parameterType="String">
+        DELETE FROM cloudfile where file_url in
+        <foreach item="item" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!-- 共享文件 -->
+    <update id="updateShare" parameterType="CloudFile">
+        update cloudfile set share_state=#{shareState} where file_id=#{fileId}
+    </update>
+
+    <!-- 根据bussinessKey查找一个文件 -->
+    <select id="findByBussinessKey" parameterType="String" resultMap="CloudFileResult">
+        select * from cloudfile
+        where bussinessKey=#{bussinessKey}
+    </select>
+
+    <!-- 添加user/file的联系 -->
+    <insert id="insertUF" parameterType="UserFile" useGeneratedKeys="true">
+        insert into user_file(bussinessKey,user_id)
+        values(#{bussinessKey},#{user_id})
+    </insert>
+
+    <!-- 查找个人所有文件 -->
+    <select id="findByUserId" parameterType="Map" resultMap="CloudFileResult">
+        select * from cloudfile cf join user_file uf
+        WHERE cf.bussinessKey=uf.bussinessKey AND uf.user_id=#{user_id}
+        <if test="fileName!=null">
+           AND file_name like '%${fileName}%'
+        </if>
+
+        <if test="fileState!=null">
+            and file_state=#{fileState}
+        </if>
+        <if test="start!=null and size!=null">  <!-- start=起始页 size=页容量 -->
+            limit #{start},#{size}
+        </if>
+    </select>
+
+    <!-- 查询个人文件数量 -->
+    <select id="countById" parameterType="Map" resultType="Integer">
+        select count(*) from cloudfile cf join user_file uf
+        WHERE cf.bussinessKey=uf.bussinessKey AND uf.user_id=#{user_id}
+            <if test="fileName!=null">
+               and file_name like '%${fileName}%'
+            </if>
+
+            <if test="fileState!=null">
+                and file_state=#{fileState}
+            </if>
+    </select>
+
+    <!--根据instanceid查找文件-->
+    <select id="findByInstanceId" parameterType="String" resultMap="CloudFileResult">
+        select * from cloudfile
+        where instanceId=#{instanceId}
+    </select>
+
+</mapper>

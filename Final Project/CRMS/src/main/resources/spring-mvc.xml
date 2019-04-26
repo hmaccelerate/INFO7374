@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <!-- 自动扫描与装配bean,一旦有扫描器的定义,mvc:annotation-driven不需要，扫描器中包含驱动-->
+    <context:component-scan base-package="com.amazingfour">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+    <!--mvc的注解驱动-->
+    <!--<mvc:annotation-driven/>-->
+
+    <!-- 解决@ResponseBody注解直接返回对象并转换成JSON时出现406问题，同时解决了返回String类型乱码的问题 -->
+    <!--<mvc:annotation-driven>-->
+        <!--<mvc:message-converters>-->
+            <!--<bean class="org.springframework.http.converter.StringHttpMessageConverter">-->
+                <!--<property name="supportedMediaTypes">-->
+                    <!--<list>-->
+                        <!--<value>text/plain;charset=UTF-8</value>-->
+                        <!--<value>text/html;charset=UTF-8</value>-->
+                    <!--</list>-->
+                <!--</property>-->
+            <!--</bean>-->
+            <!--<bean-->
+                    <!--class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">-->
+                <!--<property name="supportedMediaTypes">-->
+                    <!--<list>-->
+                        <!--<value>application/json; charset=UTF-8</value>-->
+                        <!--<value>application/x-www-form-urlencoded; charset=UTF-8</value>-->
+                    <!--</list>-->
+                <!--</property>-->
+            <!--</bean>-->
+        <!--</mvc:message-converters>-->
+    <!--</mvc:annotation-driven>-->
+    <!-- 内部资源视图解析器,前缀+ viewName +后缀 -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <!-- webroot到某一指定的文件夹的路径 -->
+        <property name="prefix" value="/WEB-INF/"></property>
+        <!-- 视图名称的后缀 -->
+        <property name="suffix" value=".jsp"></property>
+    </bean>
+
+    <!--&lt;!&ndash; 文件上传解析器&ndash;&gt;-->
+    <!--<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">-->
+        <!--<property name="maxUploadSize" value="10240000"/>-->
+        <!--<property name="defaultEncoding" value="UTF-8"/>-->
+    <!--</bean>-->
+
+    <!-- 配置资源文件,防止被拦截 -->
+    <!--<mvc:resources location="/assets" mapping="/assets/**"/>-->
+    <!--<mvc:resources location="/diagram-viewer" mapping="/diagram-viewer/**"/>-->
+    <!--<mvc:resources location="/res" mapping="/res/**"/>-->
+    <!--<mvc:resources location="/upload" mapping="/upload/**"/>-->
+
+    <!--拦截器 -->
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/**/*"/>
+            <bean class="com.amazingfour.common.utils.MemberInterceptor">
+                <property name="excludedUrls">
+                    <list>
+                        <!--<value>/login</value>-->
+                    </list>
+                </property>
+            </bean>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+</beans>

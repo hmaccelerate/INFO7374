@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+		http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+    <!--mvc的注解驱动-->
+    <!--要加注解扫描的注释，否则新加的方法不work-->
+    <mvc:annotation-driven/>
+    <!-- 自动扫描与装配bean,一旦有扫描器的定义,mvc:annotation-driven不需要，扫描器中包含驱动-->
+    <context:component-scan base-package="com.amazingfour"/>
+    <!--导入外部的配置文件-->
+    <bean id="propertiesConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="locations">
+        <list>
+            <value>classpath:jdbc.properties</value>
+        </list>
+    </property>
+    </bean>
+
+    <!--配置数据库连接池-->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" >
+        <property name="driverClassName" value="${driverClassName}"/>
+        <property name="url" value="${jdbcUrl}"/>
+        <property name="username" value="${userName}"/>
+        <property name="password" value="${passWord}"/>
+        <!--<property name="jdbcUrl" value="${jdbcUrl}"/>-->
+        <!--<property name="driverClass" value="${driverClassName}"/>-->
+        <!--<property name="user" value="${userName}"/>-->
+        <!--<property name="password" value="${passWord}"/>-->
+        <!--<property name="initialPoolSize" value="5"/>-->
+        <!--<property name="minPoolSize" value="5"/>-->
+        <!--<property name="maxPoolSize" value="10"/>-->
+        <!--<property name="acquireIncrement" value="3"/>-->
+        <!--<property name="maxStatements" value="18"/>-->
+        <!--<property name="maxStatementsPerConnection" value="18"/>-->
+        <!--<property name="maxIdleTime" value="60"/>-->
+    </bean>
+    <!-- session工厂-->
+    <bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <property name="mapperLocations" value="classpath:com/amazingfour/crms/domain/mapper/*.xml"/>
+    </bean>
+
+    <!-- DAO接口所在包名，Spring会自动查找其下的类 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.amazingfour.crms.dao" />
+        <property name="sqlSessionFactoryBeanName" value="sessionFactory" />
+    </bean>
+    <!-- 配置activiti rest服务-->
+
+    <!-- 支持上传文件 -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
+
+    <!-- 配置声明式事务管理-->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <tx:annotation-driven transaction-manager="txManager"/>
+
+</beans>

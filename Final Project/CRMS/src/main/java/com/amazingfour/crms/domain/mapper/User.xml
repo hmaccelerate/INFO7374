@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.amazingfour.crms.dao.UserDao">
+
+    <resultMap type="User" id="UserResult">
+        <id property="userId" column="user_id"/>
+        <result property="userName" column="username"/>
+        <result property="password" column="password"/>
+        <result property="userDescript" column="user_descript"/>
+        <result property="userState" column="user_state"/>
+        <result property="verifyCode" column="verifycode"/>
+        <result property="userEmail" column="user_email"/>
+        <result property="activated" column="activated"/>
+        <result property="emailKey" column="email_key"/>
+        <result property="outDate" column="out_date"/>
+        <result property="imgUrl" column="img_Url"/>
+        <result property="telPhone" column="tel_phone"/>
+        <!--<collection property="Role" column="role_id" ofType="Role">
+            <result property="roleName" column="role_name"/>
+            <result property="roleDescript" column="role_descript"/>
+        </collection>-->
+       <!-- &lt;!&ndash; 角色需要关联&ndash;&gt;-->
+        <!--<association property="role" column="role_id" javaType="Role"-->
+                     <!--resultMap="com.amazingfour.crms.dao.RoleDao.RoleResult">-->
+        <!--</association>-->
+
+    </resultMap>
+
+    <!-- 管理员登录-->
+    <select id="login" parameterType="User" resultMap="UserResult">
+        select * from user where username=#{userName} and password=#{password}
+    </select>
+
+    <!-- 查询所有用户 -->
+    <select id="find" parameterType="Map" resultMap="UserResult">
+        select u.user_id,u.username,u.user_descript,u.user_state,a.role_name from user u join role a
+        where u.role_id=a.role_id
+
+      <!--      <if test="userId!=null and roleId!=null">
+               and  u.role_id=r.role_id
+            </if>
+-->
+            <if test="roleId!=null">
+                and role_id=#{roleId}
+            </if>
+
+            <if test="userName!=null">
+                and username like '%${userName}%'
+            </if>
+
+            <if test="userState!=null">
+                and user_state=#{userState}
+            </if>
+
+
+        <if test="start!=null and size!=null">  <!-- start=起始页 size=叶容量 -->
+            limit #{start},#{size}
+        </if>
+
+    </select>
+
+     <!-- 计算用户数量-->
+    <select id="count" parameterType="User" resultType="Integer">
+        SELECT COUNT(*)
+        FROM user
+        <where>
+            <if test="userName!=null">
+                and username like '%${userName}%'
+            </if>
+
+            <if test="userState!=null">
+                and user_state=#{userState}
+            </if>
+        </where>
+    </select>
+
+    <!-- 删除用户-->
+    <delete id="delete" parameterType="Long">  <!-- 不需要指明返回类型 自动返回删除行数或者是异常信息 -->
+        delete from user WHERE  user_id=#{userId}
+    </delete>
+
+    <!-- 批量删除用户-->
+    <delete id="deleteBatch" parameterType="String">
+        DELETE FROM user where user_id in
+        <foreach item="item" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!-- 新增用户 -->
+    <insert id="insert" parameterType="User" >
+        insert into user(username,password,user_descript,user_state)
+        values(#{userName},#{password},#{userDescript},0)
+    </insert>
+
+    <select id="findUserRole" parameterType="Long"
+            resultType="Integer">
+        select count(*) from user u join role a
+        where u.role_id=a.role_id and u.role_id=#{roleId}
+    </select>
+
+    <!-- 检查某个账号的用户是否存在 -->
+    <select id="existUserByName" parameterType="String"
+            resultType="Integer">
+        select count(*) from user
+        where
+        username=#{userName}
+    </select>
+
+    <!--根据ID查找一个用户-->
+    <select id="findById" parameterType="Long" resultMap="UserResult">
+        SELECT * from user u join role r
+        WHERE  u.role_id=r.role_id
+        and user_id=#{userId}
+
+    </select>
+
+
+    <!--更新用户信息-->
+    <update id="update" parameterType="User">
+        UPDATE user set role_id=#{role.roleId},username=#{userName},user_descript=#{userDescript}
+        WHERE user_id=#{userId}
+    </update>
+<!--拉黑用户-->
+    <update id="defriend" parameterType="Long">
+        UPDATE user SET user_state=1 WHERE user_id=#{userId}
+    </update>
+    <!--修改密码-->
+   <update id="updatePassword" parameterType="User">
+      UPDATE user set password=#{password}
+      WHERE username=#{userName}
+   </update>
+    <!--解除用户黑名单-->
+    <update id="removeBlack" parameterType="Long">
+        UPDATE user SET user_state=0 WHERE user_id=#{userId}
+    </update>
+    <!--判断用户是否已绑定邮箱-->
+    <select id="findOneById" parameterType="User" resultMap="UserResult">
+        SELECT * from user
+        WHERE
+        <choose>
+            <when test="userId!=null">
+                user_id=#{userId}
+            </when>
+            <otherwise>
+                username=#{userName}
+            </otherwise>
+        </choose>
+    </select>
+    <!--绑定邮箱-->
+    <update id="bindEmail" parameterType="User">
+        UPDATE user set user_email=#{userEmail},activated=0,email_key=#{emailKey},out_date=#{outDate}
+        WHERE user_id=#{userId}
+    </update>
+    <!--修改用户基本信息-->
+    <update id="updateUserInfo" parameterType="User">
+        UPDATE user set img_url=#{imgUrl},tel_phone=#{telPhone}
+        WHERE user_id=#{userId}
+    </update>
+    <!--激活邮箱-->
+    <update id="activated" parameterType="User">
+        UPDATE user set activated=1 WHERE user_id=#{userId}
+    </update>
+    <!--找回密码发邮件时保存验证信息-->
+    <update id="saveEmailMes" parameterType="User">
+        UPDATE user set email_key=#{emailKey},out_date=#{outDate}
+        WHERE username=#{userName}
+    </update>
+
+    <!-- 根据角色名来查找所有用户-->
+    <select id="findByRoleName" parameterType="String" resultType="Int">
+        select u.user_id from user u join role a
+        where u.role_id=a.role_id AND a.role_name=#{roleName}
+    </select>
+
+</mapper>
